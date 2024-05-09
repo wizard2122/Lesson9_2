@@ -1,24 +1,27 @@
-using UnityEngine;
+using System;
 
-public class GameplayMediator : MonoBehaviour
+public class GameplayMediator : IDisposable
 {
-    [SerializeField] private DefeatPanel _defeatPanel;
-    private Level _level;
-
-    public void Initialize(Level level)
+    private readonly Level _level;
+    private readonly DefeatPanel _defeatPanel;
+    
+    public GameplayMediator(Level level, DefeatPanel defeatPanel)
     {
         _level = level;
+        _defeatPanel = defeatPanel;
         _level.Defeat += OnLevelDefeat;
-    }
-
-    private void OnDestroy()
-    {
-        _level.Defeat -= OnLevelDefeat;
+        _defeatPanel.LevelRestarting += RestartLevel;
     }
 
     private void OnLevelDefeat() => _defeatPanel.Show();
 
-    public void RestartLevel()
+    public void Dispose()
+    {
+        _level.Defeat -= OnLevelDefeat;
+        _defeatPanel.LevelRestarting -= RestartLevel;
+    }
+    
+    private void RestartLevel()
     {
         _defeatPanel.Hide();
         _level.Restart();
